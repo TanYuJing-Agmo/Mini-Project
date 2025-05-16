@@ -2,8 +2,8 @@
 {
     public class Enrollment
     {
-        public int Id { get; set; }
-        public int StudentId { get; set; }
+        public string? EnrollmentId { get; set; }
+        public string? StudentId { get; set; }
         public int CourseId { get; set; }
         public string? Status { get; set; } = "Pending"; //Pending, Approved, Rejected, Withdrawn
         public DateTime EnrolledDate { get; set; } = DateTime.UtcNow;

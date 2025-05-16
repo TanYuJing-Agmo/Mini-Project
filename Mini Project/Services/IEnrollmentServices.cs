@@ -2,15 +2,15 @@
 
 namespace Mini_Project.Services
 {
-    public class IEnrollmentServices
+    public interface IEnrollmentServices
     {
-        /*
+        
         Task<List<Enrollment>> GetAllEnrollmentAsync();
-        Task<List<Enrollment>> GetSelfEnrollmentAsync(string StudentId);
-        Task<bool> ApproveEnrollment(int enrollmentId);
-        Task<bool> RejectEnrollment(int enrollmentId);
-        Task<bool> WithdrawEnrollment(int enrollmentId);
-        Task<bool> EnrollCourse(string studentId, int courseId);
-        */
+        Task<List<Enrollment>> GetSelfEnrollmentAsync(string studentId);
+        Task<bool> ApproveEnrollment(string enrollmentId);
+        Task<bool> RejectEnrollment(string enrollmentId);
+        Task<bool> WithdrawEnrollment(string enrollmentId);
+        Task<bool> EnrollCourseAsync(string studentId, int courseId);
+        
     }
 }
