@@ -8,18 +8,20 @@ using Mini_Project.Dtos;
 
 namespace Mini_Project.Controllers
 {
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [Route("api/admin")]
     [ApiController]
     public class AdminController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IEnrollmentServices _enrollmentServices;
+        private readonly IConfiguration _configuration;
 
-        public AdminController(IEnrollmentServices enrollmentServices, UserManager<AppUser> userManager)
+        public AdminController(IEnrollmentServices enrollmentServices, UserManager<AppUser> userManager, IConfiguration configuration)
         {
             _enrollmentServices = enrollmentServices;
             _userManager = userManager;
+            _configuration = configuration;
         }
 
         //CRUD Admin
@@ -33,14 +35,14 @@ namespace Mini_Project.Controllers
                 return NotFound();
             }
 
-            var dto = admins.Select(user => new adminDto { Username = user.UserName }).ToList();
+            var dto = admins.Select(user => new AdminDto { Username = user.UserName }).ToList();
 
             return Ok(dto);
         }
 
         // POST /api/admin/add-admin
         [HttpPost("add-admin")]
-        public async Task<IActionResult> AddAdmin([FromBody] adminDto dto)
+        public async Task<IActionResult> AddAdmin([FromBody] AdminDto dto)
         {
             var existingUser = await _userManager.FindByNameAsync(dto.Username);
             if (existingUser != null)
@@ -115,7 +117,7 @@ namespace Mini_Project.Controllers
         // Admin Approve Student's Enrollment API
         // POST /api/admin/enrollments/{id}/approve
         [HttpPost("{id}/approve")]
-        public async Task<IActionResult> ApproveEnroll(string id, [FromBody] enrollRequestDto dto)
+        public async Task<IActionResult> ApproveEnroll(string id, [FromBody] EnrollRequestDto dto)
         {
             var result = await _enrollmentServices.ApproveEnrollment(id);
             if (!result)
@@ -127,7 +129,7 @@ namespace Mini_Project.Controllers
         // Admin Reject Student's Enrollment API
         // POST /api/admin/enrollments/{id}/reject
         [HttpPost("{id}/reject")]
-        public async Task<IActionResult> RejectEnroll(string id, [FromBody] enrollRequestDto dto)
+        public async Task<IActionResult> RejectEnroll(string id, [FromBody] EnrollRequestDto dto)
         {
             var result = await _enrollmentServices.RejectEnrollment(id);
             if (!result)

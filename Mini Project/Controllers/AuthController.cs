@@ -17,7 +17,7 @@ namespace Mini_Project.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthController : Controller
+    public class AuthController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
@@ -66,19 +66,16 @@ namespace Mini_Project.Controllers
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null) return Unauthorized(new { message = "Invalid login" });
 
-            var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, false, false);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+            if (!result.Succeeded)
+                return Unauthorized(new { message = "Invalid login attempt" });
 
-            if (result.Succeeded)
-            {
-                return Ok(new { message = "Login successful" });
-            }
-
-            return Unauthorized(new { message = "Invalid login attempt"});
-            
+            // Jwt Token Generation
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -99,26 +96,32 @@ namespace Mini_Project.Controllers
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
 
-            return Ok(new
+            var response = new AuthResponseDto
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo,
-                role = userRoles
-            });
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Expiration = token.ValidTo,
+                Role = userRoles
+            };
+
+            return Ok(response);
         }
+
 
         // Change Password API
         // PUT /api/auth/change-password
         [Authorize]
         [HttpPut("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
                 return BadRequest("User not found");
 
-            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
 
             if (result.Succeeded)
             {
@@ -127,5 +130,21 @@ namespace Mini_Project.Controllers
 
             return BadRequest(result.Errors);
         }
+
+        [Authorize]
+        [HttpGet("whoami")]
+        public IActionResult WhoAmI()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var username = User.Identity?.Name;
+
+            return Ok(new
+            {
+                UserId = userId,
+                Username = username,
+                Claims = User.Claims.Select(c => new { c.Type, c.Value })
+            });
+        }
+
     }
 }

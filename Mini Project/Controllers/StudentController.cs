@@ -10,7 +10,7 @@ using Mini_Project.Dtos;
 
 namespace Mini_Project.Controllers
 {
-    [Authorize(Roles = "Student")]
+    [Authorize]
     [Route("api/student")]
     [ApiController]
     public class StudentController : Controller
@@ -25,8 +25,8 @@ namespace Mini_Project.Controllers
         }
 
         // Student Retrieve Profile API
-        // GET /api/student/profile
-        [HttpGet("profile")]
+        // GET /api/student/get-profile
+        [HttpGet("get-profile")]
         public async Task<IActionResult> GetProfile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -45,8 +45,8 @@ namespace Mini_Project.Controllers
         }
 
         // Student Update Profile API
-        // PUT /api/student/profile
-        [HttpPut]
+        // PUT /api/student/update-profile
+        [HttpPut("update-profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
         {
             if (!ModelState.IsValid)
@@ -69,8 +69,8 @@ namespace Mini_Project.Controllers
         }
         
         // Student View Self Enrollment Application List API
-        // GET api/student/enrollments
-        [HttpGet("enrollments")]
+        // GET api/student/get-enrollments
+        [HttpGet("get-enrollments")]
         public async Task<IActionResult> GetEnrollments()
         {
             var user = await _userManager.GetUserAsync(User);

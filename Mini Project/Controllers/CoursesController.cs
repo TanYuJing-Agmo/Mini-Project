@@ -24,7 +24,7 @@ namespace Mini_Project.Controllers
         // Admin Endpoints
         //CRUD Courses
         //GET /api/get-all-course
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("get-all-course")]
         public async Task<IActionResult> GetAllCourse()
         {
@@ -36,9 +36,9 @@ namespace Mini_Project.Controllers
         }
 
         // POST /api/course
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("add-course")]
-        public async Task<IActionResult> AddCourse([FromBody] courseDto dto)
+        public async Task<IActionResult> AddCourse([FromBody] CourseDto dto)
         {
             var existing = await _courseServices.GetCourseByNameAsync(dto.Name);
             if (existing != null)
@@ -55,10 +55,10 @@ namespace Mini_Project.Controllers
         }
 
         // PUT /api/course/{id}
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [Route("{id}")]
         [HttpPut]
-        public async Task<IActionResult> UpdateCourse([FromBody] courseDto dto)
+        public async Task<IActionResult> UpdateCourse([FromBody] CourseDto dto)
         {
             var course = await _courseServices.GetCourseByIdAsync(dto.Id);
             if (course == null)
@@ -94,10 +94,10 @@ namespace Mini_Project.Controllers
         // Student Endpoints
         // Student Enroll Course API
         // POST /api/course/enroll
-        //[Authorize(Roles = "Student")]
+        [Authorize(Roles = "Student")]
         [Route("enroll")]
         [HttpPost]
-        public async Task<IActionResult> StudentEnroll([FromBody] enrollDto dto)
+        public async Task<IActionResult> StudentEnroll([FromBody] EnrollDto dto)
         {
             var existing = await _courseServices.GetCourseByIdAsync(dto.CourseId);
             if (existing == null)
@@ -112,10 +112,10 @@ namespace Mini_Project.Controllers
 
         // Student Withdraw Course API
         // POST /api/course/withdraw
-        //[Authorize(Roles = "Student")]
+        [Authorize(Roles = "Student")]
         [Route("withdraw")]
         [HttpPost]
-        public async Task<IActionResult> WithdrawEnroll([FromBody] withdrawDto dto)
+        public async Task<IActionResult> WithdrawEnroll([FromBody] WithdrawDto dto)
         {
             var result = await _enrollmentServices.WithdrawEnrollment(dto.EnrollmentId);
             if (!result)

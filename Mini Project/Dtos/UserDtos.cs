@@ -36,4 +36,11 @@ namespace Mini_Project.Dtos
         public string? CurrentPassword { get; set; }
         public string? NewPassword { get; set; }
     }
+    public class AuthResponseDto
+    {
+        public string Token { get; set; }
+        public DateTime Expiration { get; set; }
+        public IEnumerable<string> Role { get; set; }
+    }
+
 }

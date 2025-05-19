@@ -8,13 +8,13 @@
         public DateTime EnrolledDate { get; set; }
     }
 
-    public class enrollDto
+    public class EnrollDto
     {
         public string? StudentId { get; set; }
         public int CourseId { get; set; }
     }
 
-    public class withdrawDto
+    public class WithdrawDto
     {
         public string? EnrollmentId { get; set; }
     }
