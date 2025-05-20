@@ -9,9 +9,6 @@ namespace Mini_Project.Validators
         {
             RuleFor(x => x.CourseId)
                 .NotEmpty().WithMessage("CourseId is required");
-
-            RuleFor(x => x.StudentId)
-                .NotEmpty().WithMessage("StudentId is required");
         }
     }
 }

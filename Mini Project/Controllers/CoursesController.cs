@@ -14,11 +14,13 @@ namespace Mini_Project.Controllers
     {
         private readonly IEnrollmentServices _enrollmentServices;
         private readonly ICourseServices _courseServices;
+        private readonly UserManager<AppUser> _userManager;
 
-        public CoursesController(IEnrollmentServices enrollmentServices, ICourseServices courseServices)
+        public CoursesController(IEnrollmentServices enrollmentServices, ICourseServices courseServices, UserManager<AppUser> userManager)
         {
             _enrollmentServices = enrollmentServices;
             _courseServices = courseServices;
+            _userManager = userManager;
         }
 
         // Admin Endpoints
@@ -35,10 +37,10 @@ namespace Mini_Project.Controllers
             return Ok(course);
         }
 
-        // POST /api/course
+        // POST /api/course/add-course
         [Authorize(Roles = "Admin")]
         [HttpPost("add-course")]
-        public async Task<IActionResult> AddCourse([FromBody] CourseDto dto)
+        public async Task<IActionResult> AddCourse([FromBody] AddCourseDto dto)
         {
             var existing = await _courseServices.GetCourseByNameAsync(dto.Name);
             if (existing != null)
@@ -54,11 +56,11 @@ namespace Mini_Project.Controllers
             return Ok(new { message = "Course Added Successfully" });
         }
 
-        // PUT /api/course/{id}
+        // PUT /api/course/update-course
         [Authorize(Roles = "Admin")]
-        [Route("{id}")]
+        [Route("update-course")]
         [HttpPut]
-        public async Task<IActionResult> UpdateCourse([FromBody] CourseDto dto)
+        public async Task<IActionResult> UpdateCourse([FromBody] UpdateCourseDto dto)
         {
             var course = await _courseServices.GetCourseByIdAsync(dto.Id);
             if (course == null)
@@ -99,11 +101,13 @@ namespace Mini_Project.Controllers
         [HttpPost]
         public async Task<IActionResult> StudentEnroll([FromBody] EnrollDto dto)
         {
+            var studentId = _userManager.GetUserId(User);
+
             var existing = await _courseServices.GetCourseByIdAsync(dto.CourseId);
             if (existing == null)
                 return BadRequest(new { message = "The course does not exist" });
 
-            var result = await _enrollmentServices.EnrollCourseAsync(dto.StudentId, dto.CourseId);
+            var result = await _enrollmentServices.EnrollCourseAsync(studentId, dto.CourseId);
             if (!result)
                 return BadRequest(new { message = "Enrollment request failed" });
 
@@ -115,7 +119,7 @@ namespace Mini_Project.Controllers
         [Authorize(Roles = "Student")]
         [Route("withdraw")]
         [HttpPost]
-        public async Task<IActionResult> WithdrawEnroll([FromBody] WithdrawDto dto)
+        public async Task<IActionResult> WithdrawEnroll([FromBody] StatusDto dto)
         {
             var result = await _enrollmentServices.WithdrawEnrollment(dto.EnrollmentId);
             if (!result)

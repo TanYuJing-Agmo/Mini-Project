@@ -3,9 +3,9 @@ using Mini_Project.Dtos;
 
 namespace Mini_Project.Validators
 {
-    public class CourseValidator : AbstractValidator<CourseDto>
+    public class UpdateCourseValidator : AbstractValidator<UpdateCourseDto>
     {
-        public CourseValidator()
+        public UpdateCourseValidator()
         {
             RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required");

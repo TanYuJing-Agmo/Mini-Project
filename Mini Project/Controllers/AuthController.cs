@@ -58,6 +58,21 @@ namespace Mini_Project.Controllers
             return BadRequest(result.Errors);
         }
 
+        /*
+        //Student
+        {
+            "email": "Test3@email.com",
+            "password": "Test3Pass!"
+        }
+
+        //Admin
+        {
+            "email": "Admin2@email.com",
+            "password": "Admin2Pass!"
+        }
+        */
+
+
         // Login API
         // POST /api/auth/login
         [HttpPost("login")]
@@ -66,10 +81,11 @@ namespace Mini_Project.Controllers
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null) return Unauthorized(new { message = "Invalid login" });
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
             if (!result.Succeeded)
                 return Unauthorized(new { message = "Invalid login attempt" });
 
+            /*
             // Jwt Token Generation
             var authClaims = new List<Claim>
             {
@@ -101,9 +117,9 @@ namespace Mini_Project.Controllers
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 Expiration = token.ValidTo,
                 Role = userRoles
-            };
+            };*/
 
-            return Ok(response);
+            return Ok();
         }
 
 
@@ -130,21 +146,5 @@ namespace Mini_Project.Controllers
 
             return BadRequest(result.Errors);
         }
-
-        [Authorize]
-        [HttpGet("whoami")]
-        public IActionResult WhoAmI()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var username = User.Identity?.Name;
-
-            return Ok(new
-            {
-                UserId = userId,
-                Username = username,
-                Claims = User.Claims.Select(c => new { c.Type, c.Value })
-            });
-        }
-
     }
 }

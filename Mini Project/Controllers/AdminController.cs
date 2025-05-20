@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Mini_Project.Data;
+using Mini_Project.Dtos;
 using Mini_Project.Models;
 using Mini_Project.Services;
-using Mini_Project.Dtos;
 
 namespace Mini_Project.Controllers
 {
@@ -16,12 +18,14 @@ namespace Mini_Project.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IEnrollmentServices _enrollmentServices;
         private readonly IConfiguration _configuration;
+        private readonly AppDbContext _context;
 
-        public AdminController(IEnrollmentServices enrollmentServices, UserManager<AppUser> userManager, IConfiguration configuration)
+        public AdminController(IEnrollmentServices enrollmentServices, UserManager<AppUser> userManager, IConfiguration configuration, AppDbContext context)
         {
             _enrollmentServices = enrollmentServices;
             _userManager = userManager;
             _configuration = configuration;
+            _context = context;
         }
 
         //CRUD Admin
@@ -44,13 +48,13 @@ namespace Mini_Project.Controllers
         [HttpPost("add-admin")]
         public async Task<IActionResult> AddAdmin([FromBody] AdminDto dto)
         {
-            var existingUser = await _userManager.FindByNameAsync(dto.Username);
+            var existingUser = await _userManager.FindByEmailAsync(dto.Email);
             if (existingUser != null)
             {
                 return Conflict(new { message = "Username already exists." });
             }
 
-            var user = new AppUser { UserName = dto.Username};
+            var user = new AppUser { UserName = dto.Username, Email = dto.Email};
             var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (result.Succeeded)
@@ -60,21 +64,6 @@ namespace Mini_Project.Controllers
             }
 
             return BadRequest(result.Errors);
-        }
-
-        // PUT /api/admin/change-password
-        [HttpPut("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return NotFound();
-
-            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new { message = "Password changed successfully" });
         }
 
         // DELETE /api/admin/users/{id}
@@ -102,24 +91,25 @@ namespace Mini_Project.Controllers
         {
             var enrollments = await _enrollmentServices.GetAllEnrollmentAsync();
 
-            var dtoList = enrollments.Select(e => new EnrollmentDto
-            {
-                EnrollmentId = e.EnrollmentId,
-                CourseName = e.Course?.Name,
-                Status = e.Status,
-                EnrolledDate = e.EnrolledDate
-            }).ToList();
+            var dtoList = await (from e in _context.Enrollments
+                                 join c in _context.Courses on e.CourseId equals c.CourseId
+                                 select new EnrollmentDto
+                                 {
+                                     EnrollmentId = e.EnrollmentId,
+                                     CourseName = c.Name,
+                                     Status = e.Status,
+                                     EnrolledDate = e.EnrolledDate
+                                 }).ToListAsync();
 
             return Ok(dtoList);
-
         }
 
         // Admin Approve Student's Enrollment API
-        // POST /api/admin/enrollments/{id}/approve
-        [HttpPost("{id}/approve")]
-        public async Task<IActionResult> ApproveEnroll(string id, [FromBody] EnrollRequestDto dto)
+        // POST /api/admin/enrollments/approve
+        [HttpPost("approve")]
+        public async Task<IActionResult> ApproveEnroll([FromBody] StatusDto dto)
         {
-            var result = await _enrollmentServices.ApproveEnrollment(id);
+            var result = await _enrollmentServices.ApproveEnrollment(dto.EnrollmentId);
             if (!result)
                 return BadRequest(new { message = "Approval failed"});
 
@@ -127,11 +117,11 @@ namespace Mini_Project.Controllers
         }
 
         // Admin Reject Student's Enrollment API
-        // POST /api/admin/enrollments/{id}/reject
-        [HttpPost("{id}/reject")]
-        public async Task<IActionResult> RejectEnroll(string id, [FromBody] EnrollRequestDto dto)
+        // POST /api/admin/enrollments/reject
+        [HttpPost("reject")]
+        public async Task<IActionResult> RejectEnroll([FromBody] StatusDto dto)
         {
-            var result = await _enrollmentServices.RejectEnrollment(id);
+            var result = await _enrollmentServices.RejectEnrollment(dto.EnrollmentId);
             if (!result)
                 return BadRequest(new { message = "Rejection failed" });
 

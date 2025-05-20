@@ -2,7 +2,7 @@
 {
     public class Enrollment
     {
-        public string? EnrollmentId { get; set; }
+        public string? EnrollmentId { get; set; } = Guid.NewGuid().ToString();
         public string? StudentId { get; set; }
         public int CourseId { get; set; }
         public string? Status { get; set; } = "Pending"; //Pending, Approved, Rejected, Withdrawn

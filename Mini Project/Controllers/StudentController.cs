@@ -2,26 +2,30 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Mini_Project.Data;
+using Mini_Project.Dtos;
 using Mini_Project.Models;
 using Mini_Project.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
-using Mini_Project.Dtos;
 
 namespace Mini_Project.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = ("Student"))]
     [Route("api/student")]
     [ApiController]
     public class StudentController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IEnrollmentServices _enrollmentServices;
+        private readonly AppDbContext _context;
 
-        public StudentController(UserManager<AppUser> userManager, IEnrollmentServices enrollmentServices)
+        public StudentController(UserManager<AppUser> userManager, IEnrollmentServices enrollmentServices, AppDbContext context)
         {
             _userManager = userManager;
             _enrollmentServices = enrollmentServices;
+            _context = context;
         }
 
         // Student Retrieve Profile API
@@ -79,31 +83,18 @@ namespace Mini_Project.Controllers
 
             var enrollments = await _enrollmentServices.GetSelfEnrollmentAsync(user.Id);
 
-            var dtoList = enrollments.Select(e => new EnrollmentDto
-            {
-                EnrollmentId = e.EnrollmentId,
-                CourseName = e.Course.Name,
-                Status = e.Status,
-                EnrolledDate = e.EnrolledDate
-            }).ToList();
+            var dtoList = await (from e in _context.Enrollments
+                                 join c in _context.Courses on e.CourseId equals c.CourseId
+                                 where e.StudentId == user.Id
+                                 select new EnrollmentDto
+                                 {
+                                     EnrollmentId = e.EnrollmentId,
+                                     CourseName = c.Name,
+                                     Status = e.Status,
+                                     EnrolledDate = e.EnrolledDate
+                                 }).ToListAsync();
 
             return Ok(dtoList);
-
-        }
-
-        // PUT /api/student/change-password
-        [HttpPut("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return NotFound();
-
-            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new { message = "Password changed successfully" });
         }
     }
 }

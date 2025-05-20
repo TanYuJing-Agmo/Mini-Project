@@ -62,8 +62,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddAuthorization();
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,20 +71,17 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
 
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        //ValidateIssuer = true,
+        //ValidateAudience = true,
         ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
+        //ValidateIssuerSigningKey = true,
 
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-        NameClaimType = ClaimTypes.Name,
-        RoleClaimType = ClaimTypes.Role
+        //ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        //ValidAudience = builder.Configuration["Jwt:Audience"],
+        //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
     };
 
     options.Events = new JwtBearerEvents
@@ -117,6 +112,8 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+
+builder.Services.AddAuthorization();
 
 // Identity Setup
 builder.Services.AddIdentity<AppUser,  IdentityRole>()
@@ -153,6 +150,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStatusCodePages();
 app.UseRouting();
+
+app.Use(async (context, next) =>
+{
+    Console.WriteLine("Authorization: " + context.Request.Headers["Authorization"]);
+    await next();
+});
 
 app.Use(async (context, next) =>
 {

@@ -83,13 +83,14 @@ namespace Mini_Project.Services
 
             var enrollment = new Enrollment
             {
+                EnrollmentId = Guid.NewGuid().ToString(),
                 StudentId = studentId,
                 CourseId = courseId,
                 Status = "Pending",
                 EnrolledDate = DateTime.UtcNow
             };
 
-            _context.Enrollments.Add(enrollment);
+            await _context.Enrollments.AddAsync(enrollment);
             await _context.SaveChangesAsync();
 
             return true;

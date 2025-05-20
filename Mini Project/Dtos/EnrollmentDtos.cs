@@ -10,11 +10,10 @@
 
     public class EnrollDto
     {
-        public string? StudentId { get; set; }
         public int CourseId { get; set; }
     }
 
-    public class WithdrawDto
+    public class StatusDto
     {
         public string? EnrollmentId { get; set; }
     }
