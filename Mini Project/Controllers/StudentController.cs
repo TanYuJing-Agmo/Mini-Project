@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mini_Project.Controllers
 {
-    [Authorize(Roles = ("Student"))]
+    [Authorize(Roles = "Student")]
     [Route("api/student")]
     [ApiController]
     public class StudentController : Controller
