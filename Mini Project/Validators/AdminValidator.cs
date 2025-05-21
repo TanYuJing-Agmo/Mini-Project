@@ -3,7 +3,7 @@ using Mini_Project.Dtos;
 
 namespace Mini_Project.Validators
 {
-    public class AdminValidator : AbstractValidator<AdminDto>
+    public class AdminValidator : AbstractValidator<AddAdminDto>
     {
         public AdminValidator()
         {

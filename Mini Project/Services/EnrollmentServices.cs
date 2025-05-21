@@ -15,11 +15,15 @@ namespace Mini_Project.Services
 
         public async Task<List<Enrollment>> GetAllEnrollmentAsync()
         {
-            return await _context.Enrollments.ToListAsync();
+            return await _context.Enrollments
+                .AsNoTracking()
+                .Include(x => x.Course)
+                .Include(x => x.Student)
+                .ToListAsync();
         }
         public async Task<List<Enrollment>> GetSelfEnrollmentAsync(string studentId)
         {
-            return await _context.Enrollments.Where(s => s.StudentId == studentId).ToListAsync();
+            return await _context.Enrollments.AsNoTracking().Where(s => s.StudentId == studentId).ToListAsync();
         }
         public async Task<bool> ApproveEnrollment(string enrollmentId)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,13 +20,22 @@ namespace Mini_Project.Controllers
         private readonly IEnrollmentServices _enrollmentServices;
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public AdminController(IEnrollmentServices enrollmentServices, UserManager<AppUser> userManager, IConfiguration configuration, AppDbContext context)
+        public AdminController
+            (
+            IEnrollmentServices enrollmentServices,
+            UserManager<AppUser> userManager,
+            IConfiguration configuration,
+            AppDbContext context,
+            IMapper mapper
+            )
         {
             _enrollmentServices = enrollmentServices;
             _userManager = userManager;
             _configuration = configuration;
             _context = context;
+            _mapper = mapper;
         }
 
         //CRUD Admin
@@ -38,15 +48,14 @@ namespace Mini_Project.Controllers
             {
                 return NotFound();
             }
-
-            var dto = admins.Select(user => new AdminDto { Username = user.UserName }).ToList();
+            var dto = _mapper.Map<List<GetAdminDto>>(admins);
 
             return Ok(dto);
         }
 
         // POST /api/admin/add-admin
         [HttpPost("add-admin")]
-        public async Task<IActionResult> AddAdmin([FromBody] AdminDto dto)
+        public async Task<IActionResult> AddAdmin([FromBody] AddAdminDto dto)
         {
             var existingUser = await _userManager.FindByEmailAsync(dto.Email);
             if (existingUser != null)
@@ -90,18 +99,8 @@ namespace Mini_Project.Controllers
         public async Task<IActionResult> GetAllEnroll()
         {
             var enrollments = await _enrollmentServices.GetAllEnrollmentAsync();
-
-            var dtoList = await (from e in _context.Enrollments
-                                 join c in _context.Courses on e.CourseId equals c.CourseId
-                                 select new EnrollmentDto
-                                 {
-                                     EnrollmentId = e.EnrollmentId,
-                                     CourseName = c.Name,
-                                     Status = e.Status,
-                                     EnrolledDate = e.EnrolledDate
-                                 }).ToListAsync();
-
-            return Ok(dtoList);
+            var dtoMapped = _mapper.Map<List<EnrollmentDto>>(enrollments);
+            return Ok(dtoMapped);
         }
 
         // Admin Approve Student's Enrollment API

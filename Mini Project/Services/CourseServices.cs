@@ -15,17 +15,17 @@ namespace Mini_Project.Services
 
         public async Task<List<Course>> GetAllCoursesAsync()
         {
-            return await _context.Courses.ToListAsync();
+            return await _context.Courses.AsNoTracking().ToListAsync();
         }
 
         public async Task<Course?> GetCourseByNameAsync(string name)
         {
-            return await _context.Courses.FirstOrDefaultAsync(s => s.Name == name);
+            return await _context.Courses.AsNoTracking().FirstOrDefaultAsync(s => s.Name == name);
         }
 
         public async Task<Course?> GetCourseByIdAsync(int courseId)
         {
-            return await _context.Courses.FirstOrDefaultAsync(s => s.CourseId == courseId);
+            return await _context.Courses.AsNoTracking().FirstOrDefaultAsync(s => s.CourseId == courseId);
         }
 
         public async Task<Course> AddCourseAsync(Course course)
